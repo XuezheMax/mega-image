@@ -40,7 +40,6 @@ class MovingAverageGatedAttention(nn.Module):
         chunk_size=-1,
         truncation=None,
         norm_type='layernorm',
-        prenorm=True,
         feature_dropout=False,
         no_rel_pos_bias=False,
         max_positions=1024,
@@ -63,7 +62,6 @@ class MovingAverageGatedAttention(nn.Module):
         self.drop_path = DropPath(drop_path, dim=1) if drop_path > 0. else nn.Identity()
 
         self.chunk_size = chunk_size
-        self.prenorm = prenorm
         self.norm = SequenceNorm(norm_type, embed_dim)
 
         self.move = MultiHeadEMA(embed_dim, ndim=ndim, bidirectional=bidirectional, truncation=truncation)
@@ -138,8 +136,7 @@ class MovingAverageGatedAttention(nn.Module):
         assert embed_dim == self.embed_dim
 
         residual = x
-        if self.prenorm:
-            x = self.norm(x)
+        x = self.norm(x)
 
         # L x B x E
         v = self.activation(self.v_proj(x))
@@ -200,9 +197,6 @@ class MovingAverageGatedAttention(nn.Module):
         # L x B x E -> L x B x D
         h = self.activation(hx + self.h_proj(h * r))
         h = self.dropout(h)
-
-        if not self.prenorm:
-            h = self.norm(h)
         h = self.drop_path(h)
         # L x B x D
         out = torch.addcmul(residual, u, h - residual)
@@ -210,5 +204,5 @@ class MovingAverageGatedAttention(nn.Module):
         return out
 
     def extra_repr(self) -> str:
-        return 'edim={}, zdim={}, hdim={}, ndim={}, chunk={}, attn_act={}, prenorm={}'.format(
-            self.embed_dim, self.zdim, self.hdim, self.ndim, self.chunk_size, self.attention_activation, self.prenorm)
+        return 'edim={}, zdim={}, hdim={}, ndim={}, chunk={}, attn_act={}'.format(
+            self.embed_dim, self.zdim, self.hdim, self.ndim, self.chunk_size, self.attention_activation)

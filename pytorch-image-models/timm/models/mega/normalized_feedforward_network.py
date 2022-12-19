@@ -21,7 +21,6 @@ class NormalizedFeedForwardNetwork(nn.Module):
         drop_path=0.0,
         activation='silu',
         norm_type='layernorm',
-        prenorm=True,
         feature_dropout=False,
     ):
         super().__init__()
@@ -36,15 +35,9 @@ class NormalizedFeedForwardNetwork(nn.Module):
         self.hidden_dropout = dropout_module(hidden_dropout, module_name=self.__class__.__name__)
         self.drop_path = DropPath(drop_path, dim=1) if drop_path > 0. else nn.Identity()
 
-        self.prenorm = prenorm
         self.norm = SequenceNorm(norm_type, embed_dim)
-
         self.fc1 = nn.Linear(embed_dim, ffn_hidden_dim)
         self.fc2 = nn.Linear(ffn_hidden_dim, embed_dim)
-        if self.prenorm:
-            self.gc = None
-        else:
-            self.gc = nn.Linear(embed_dim, 1)
 
         self.reset_parameters()
 
@@ -62,26 +55,16 @@ class NormalizedFeedForwardNetwork(nn.Module):
 
     def forward(self, x):
         residual = x
-
-        if self.prenorm:
-            x = self.norm(x)
-            u = None
-        else:
-            # L x B x 1
-            u = torch.sigmoid(self.gc(x))
+        x = self.norm(x)
 
         x = self.activation(self.fc1(x))
         x = self.hidden_dropout(x)
         x = self.fc2(x)
         x = self.dropout(x)
 
-        if self.prenorm:
-            x = self.drop_path(x) + residual
-        else:
-            x = self.drop_path(self.norm(x))
-            x = torch.addcmul(residual, u, x - residual)
+        x = self.drop_path(x) + residual
 
         return x
 
     def extra_repr(self) -> str:
-        return 'edim={}, hdim={}, act={}, prenorm={}'.format(self.embedding_dim, self.hidden_dim, self.act_fn, self.prenorm)
+        return 'edim={}, hdim={}, act={}'.format(self.embedding_dim, self.hidden_dim, self.act_fn)

@@ -27,8 +27,7 @@ class MegaLayer(nn.Module):
         max_positions: int = 1024,
         activation='silu',
         attention_activation='softmax',
-        norm_type: str = 'scalenorm',
-        prenorm: bool = True,
+        norm_type: str = 'layernorm',
         no_rel_pos_bias = False,
     ) -> None:
         super().__init__()
@@ -49,7 +48,6 @@ class MegaLayer(nn.Module):
             attention_activation=attention_activation,
             bidirectional=True,
             norm_type=norm_type,
-            prenorm=prenorm,
             no_rel_pos_bias=no_rel_pos_bias,
         )
         self.nffn = NormalizedFeedForwardNetwork(
@@ -60,7 +58,6 @@ class MegaLayer(nn.Module):
             drop_path=drop_path,
             activation=activation,
             norm_type=norm_type,
-            prenorm=prenorm,
         )
 
     def forward(self, x):

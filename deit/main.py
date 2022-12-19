@@ -53,7 +53,7 @@ def get_args_parser():
     parser.add_argument('--model-ema', action='store_true')
     parser.add_argument('--patch-impl', choices=['conv', 'linear'], default='conv',
                         help='patch embedding implementation.')
-    parser.add_argument('--norm-type', choices=['layernorm', 'batchnorm', 'syncbatchnorm'], default='syncbatchnorm')
+    parser.add_argument('--norm-type', choices=['layernorm', 'batchnorm', 'syncbatchnorm'], default='layernorm')
     parser.add_argument('--no-pos-emb', action='store_true', default=False,
                         help='no position embedding.')
     parser.add_argument('--no-model-ema', action='store_false', dest='model_ema')

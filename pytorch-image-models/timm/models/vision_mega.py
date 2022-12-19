@@ -23,7 +23,7 @@ class VisionMEGA(nn.Module):
     def __init__(self, img_size=224, patch_size=16, in_chans=3, num_classes=1000, depth=12,
                  embed_dim=768, hidden_dim=1536, ffn_hidden_dim=1536, zdim=256, ndim=16,
                  representation_size=None, embed_layer=PatchEmbed, patch_impl='conv',
-                 prenorm=True, norm_type='syncbatchnorm', no_pos_emb=False,
+                 norm_type='layernorm', no_pos_emb=False,
                  drop_rate=0., attn_drop_rate=0., drop_path_rate=0., distilled=False):
         """
         Args:
@@ -51,7 +51,7 @@ class VisionMEGA(nn.Module):
 
         assert img_size % patch_size == 0
         self.patch_embed = embed_layer(img_size=img_size, patch_size=patch_size, in_chans=in_chans,
-                                       embed_dim=embed_dim, bias=prenorm, impl=patch_impl)
+                                       embed_dim=embed_dim, bias=True, impl=patch_impl)
 
         num_patches = self.patch_embed.num_patches
         if no_pos_emb:
@@ -60,7 +60,7 @@ class VisionMEGA(nn.Module):
             self.pos_embed = nn.Parameter(torch.zeros(1, num_patches + self.num_tokens, embed_dim))
             trunc_normal_(self.pos_embed, std=(embed_dim ** -0.5))
 
-        self.patch_norm = SequenceNorm(norm_type, embed_dim) if not prenorm else nn.Identity()
+        self.patch_norm = nn.Identity()
 
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depth)]  # stochastic depth decay rule
         self.blocks = nn.Sequential(*[
@@ -79,12 +79,11 @@ class VisionMEGA(nn.Module):
                 max_positions=(img_size // patch_size) ** 2,
                 activation='silu', # hard coded in the code. We will always use silu in VIM.
                 attention_activation='laplace',
-                prenorm=prenorm,
                 norm_type=norm_type,
             )
             for i in range(depth)])
 
-        self.final_norm = SequenceNorm(norm_type, embed_dim) if prenorm else nn.Identity()
+        self.final_norm = SequenceNorm(norm_type, embed_dim)
         self.out_proj = nn.Sequential(OrderedDict([
             ('fc', nn.Linear(embed_dim, embed_dim)),
             ('act', nn.SiLU())
