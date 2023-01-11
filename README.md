@@ -17,7 +17,7 @@ pip install --editable pytorch-image-models/  --user
 
 Task | Description                          | # params | Download
 ---|--------------------------------------|---|---
-`ImageNet-1k` | Mega on ImageNet-1k      | -- | [mega.imagenet.zip](https://dl.fbaipublicfiles.com/mega/mega.imagenet.zip)
+`ImageNet-1k` | Mega on ImageNet-1k      | 90M | [mega.imagenet.zip](https://dl.fbaipublicfiles.com/mega/mega.imagenet.zip)
 
 ## Training Mega on ImageNet-1k
 To train Mega-base on ImageNet on a single node with 8 gpus for 300 epochs with `slurm`:
