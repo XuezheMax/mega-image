@@ -28,7 +28,6 @@ srun --label python -u deit/main.py \
         --batch-size 128 \
         --lr 2e-3 \
         --seed 42 \
-        --prenorm \
         --norm-type 'layernorm' \
         --drop-path 0.3 \
         --epochs 300 \

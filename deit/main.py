@@ -24,7 +24,6 @@ from engine import train_one_epoch, evaluate
 from losses import DistillationLoss
 from samplers import RASampler
 from augment import new_data_aug_generator
-import models
 import utils
 
 try:
@@ -32,6 +31,7 @@ try:
     has_wandb = True
 except ImportError:
     has_wandb = False
+
 
 def get_args_parser():
     parser = argparse.ArgumentParser('DeiT training and evaluation script', add_help=False)
@@ -202,7 +202,7 @@ def main(args):
             wandb.init(project='vit', entity="mega_lm", name=os.environ.get("WANDB_NAME", os.path.basename(args.output_dir)))
         else:
             print("You've requested to log metrics to wandb but package not found. "
-                            "Metrics not being logged to wandb, try `pip install wandb`")
+                  "Metrics not being logged to wandb, try `pip install wandb`")
 
     if args.distillation_type != 'none' and args.finetune and not args.eval:
         raise NotImplementedError("Finetuning with distillation not yet supported")
